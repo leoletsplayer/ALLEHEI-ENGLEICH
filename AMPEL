@@ -1,5 +1,5 @@
 #include <Arduino.h>
- 
+
 #define LED_RED PC0
 #define LED_GREEN PC4
 #define LED_GELB PC2
@@ -7,46 +7,43 @@
 #define S2_GREEN PA10
 #define S3_GELB PA6
 
-enum Zustand {ROT,GELB,GRUEN};
-Zustand aktueller_zustand;
+enum zustand {ROT, GRUEN, GELB};
+zustand aktueller_zustand;
 
-
-
-void setup() {
-  pinMode(LED_RED,OUTPUT);
+void setup() 
+{
+  pinMode(LED_RED, OUTPUT);
+  pinMode(LED_GREEN, OUTPUT);
   pinMode(LED_GELB,OUTPUT);
-  pinMode(LED_GREEN,OUTPUT);
-  pinMode(S1_RED,INPUT_PULLDOWN);
-  pinMode(S2_GREEN,INPUT_PULLDOWN);
-  pinMode(S3_GELB,INPUT_PULLDOWN);
+  pinMode(S1_RED, INPUT_PULLDOWN);
+  pinMode(S2_GREEN, INPUT_PULLDOWN);
 
   aktueller_zustand = ROT;
-  digitalWrite(LED_RED,1);
+  digitalWrite(LED_RED, 1);
 }
 
-void loop() {
+void loop() 
+{
   switch (aktueller_zustand)
   {
-  case ROT:
-    if (digitalRead(S2_GREEN)==1)
+    case ROT:
+    if (digitalRead(S2_GREEN) == 1)
     {
-      while (digitalRead(S2_GREEN)==1);
-      digitalWrite(LED_RED,0);
+      while(digitalRead(S2_GREEN) == 1);
+      digitalWrite(LED_RED, 0);
       aktueller_zustand = GRUEN;
       digitalWrite(LED_GREEN, 1);
     }
     break;
-  case GRUEN:
-    if (digitalRead(S2_GREEN)==1)
+            
+    case GRUEN:
+    if (digitalRead(S1_RED) == 1)
     {
-      while (digitalRead(S2_GREEN)==1);
-      digitalWrite(LED_RED,0);
-      aktueller_zustand = GRUEN;
-      digitalWrite(LED_GREEN, 1);
+      while(digitalRead(S1_RED) == 1);
+      digitalWrite(LED_GREEN, 0);
+      aktueller_zustand = ROT;
+      digitalWrite(LED_RED, 1);
     }
-    break;
-  
-  default:
     break;
   }
 }
