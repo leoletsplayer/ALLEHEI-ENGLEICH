@@ -1,0 +1,71 @@
+#include <Arduino.h>
+#include <Wire.h>
+#include "LiquidCrystal_PCF8574.h"
+LiquidCrystal_PCF8574 display(0x27);
+
+
+#define START PA1 
+#define STOP PA10  
+
+unsigned char messzeit;
+
+enum Zustand{STOPPUHR_ANGEHALTEN,STOPPUHR_LAEUFT};
+Zustand aktueller_zustand;
+
+void setup() {
+  pinMode(START,INPUT_PULLDOWN);
+  pinMode(STOP,INPUT_PULLDOWN);
+
+  display.begin(16, 2);
+  display.setBacklight(255);
+  display.clear();
+  display.setCursor(0, 0);
+  display.printf("it.schule");
+
+  aktueller_zustand = STOPPUHR_ANGEHALTEN;
+  messzeit = 0;
+}
+
+void loop() {
+  switch (aktueller_zustand)
+  {
+  case STOPPUHR_ANGEHALTEN:
+    if (digitalRead(START)==1)
+    {
+
+      aktueller_zustand = STOPPUHR_LAEUFT;
+      messzeit = 0;
+    }
+    
+    break;
+  case STOPPUHR_LAEUFT:
+  
+
+    if (digitalRead(START)==1)
+    {
+      while(START == 1);
+      messzeit = 0;
+      aktueller_zustand = STOPPUHR_LAEUFT;
+
+    }
+    else if (digitalRead(STOP)==1)
+    {
+      aktueller_zustand = STOPPUHR_ANGEHALTEN;
+    }
+    //Do
+    else{
+      messzeit++;
+      delay(1000);
+      display.clear();
+      display.setCursor(0,0);
+      display.print(messzeit);
+    }
+    
+    
+    
+    break;
+  
+  default:
+    break;
+  }
+}
