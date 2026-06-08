@@ -1,0 +1,42 @@
+#include <Arduino.h>
+
+#define LEDS GPIOC->ODR 
+#define ROT_TASTE PA1 
+#define GRUEN_TASTE PA10
+#define AUS_TASTE PA6 
+
+enum zustand{AUS,ROT,GRUEN}; 
+volatile zustand aktueller_zustand;
+
+void isr_rote_taste(){
+    switch (zustand)
+    {
+    case :
+        
+        break;
+    
+    default:
+        break;
+    }
+}
+void isr_gruen_taste(){
+    
+}
+void isr_aus_taste(){
+    
+}
+
+void setup() {
+    GPIOC->MODER = 0x5555;
+    pinMode(ROT_TASTE, INPUT_PULLDOWN);
+    attachInterrupt(digitalPinToInterrupt(ROT_TASTE),isr_rote_taste,RISING);
+    pinMode(GRUEN_TASTE, INPUT_PULLDOWN);
+    attachInterrupt(digitalPinToInterrupt(GRUEN_TASTE),isr_gruen_taste,RISING);
+    pinMode(AUS_TASTE, INPUT_PULLDOWN);
+    attachInterrupt(digitalPinToInterrupt(AUS_TASTE),isr_aus_taste,RISING);
+}
+
+void loop() {
+
+}
+
