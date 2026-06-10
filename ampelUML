@@ -1,42 +1,138 @@
 #include <Arduino.h>
 
-#define LEDS GPIOC->ODR 
-#define ROT_TASTE PA1 
-#define GRUEN_TASTE PA10
-#define AUS_TASTE PA6 
+#define LED_AUS PA6
+#define LED_ROT PA1 
+#define LED_GRUEN PA10 
+#define LED GPIOC->ODR
+enum moeglicheZustaende {Initialisierung,AUS,ROT,GRUEN};
 
-enum zustand{AUS,ROT,GRUEN}; 
-volatile zustand aktueller_zustand;
+moeglicheZustaende aktuellerZustand = moeglicheZustaende::Initialisierung;
 
-void isr_rote_taste(){
-    switch (zustand)
-    {
-    case :
-        
-        break;
-    
-    default:
-        break;
-    }
-}
-void isr_gruen_taste(){
-    
-}
-void isr_aus_taste(){
-    
+int ereignis_isr_rote_taste = 0;
+int ereignis_isr_gruen_taste = 0;
+int ereignis_isr_aus_taste = 0;
+
+void isr_rot(){
+  ereignis_isr_rote_taste = 1;
 }
 
-void setup() {
+void isr_gruen(){
+  ereignis_isr_gruen_taste = 1;
+}
+
+void isr_aus(){
+  ereignis_isr_aus_taste = 1;
+}
+
+void setup(){
+    pinMode(PC0,OUTPUT);
     GPIOC->MODER = 0x5555;
-    pinMode(ROT_TASTE, INPUT_PULLDOWN);
-    attachInterrupt(digitalPinToInterrupt(ROT_TASTE),isr_rote_taste,RISING);
-    pinMode(GRUEN_TASTE, INPUT_PULLDOWN);
-    attachInterrupt(digitalPinToInterrupt(GRUEN_TASTE),isr_gruen_taste,RISING);
-    pinMode(AUS_TASTE, INPUT_PULLDOWN);
-    attachInterrupt(digitalPinToInterrupt(AUS_TASTE),isr_aus_taste,RISING);
+    pinMode(LED_AUS,INPUT_PULLDOWN);
+    attachInterrupt(digitalPinToInterrupt(LED_AUS),isr_aus,RISING);
+    pinMode(LED_ROT,INPUT_PULLDOWN);
+    attachInterrupt(digitalPinToInterrupt(LED_ROT),isr_rot,RISING);
+    pinMode(LED_GRUEN,INPUT_PULLDOWN);
+    attachInterrupt(digitalPinToInterrupt(LED_GRUEN),isr_gruen,RISING);
+
 }
 
 void loop() {
+  // put your main code here, to run repeatedly:
+  switch(aktuellerZustand)
+  {
+    case moeglicheZustaende::Initialisierung:
+        aktuellerZustand = moeglicheZustaende::AUS;
+        LED=0;
+        break;
+  case moeglicheZustaende::AUS:
+  if (ereignis_isr_rote_taste==1)
+  {
+      ereignis_isr_rote_taste=0;
+      //exit
+      LED=0b00;
+      //Uebergang
+      aktuellerZustand = moeglicheZustaende::ROT;
+      //transistionsaktivität
+      //entry
+      LED = 0b10010010;
+  }
+  else if (ereignis_isr_gruen_taste ==1)
+  {
+    ereignis_isr_gruen_taste=0;
+      //exit
+      LED=0b00;
+      //Uebergang
+      aktuellerZustand = moeglicheZustaende::GRUEN;
+      //transistionsaktivität
+      //entry
+      LED = 0b01001001;
 
+  }
+  else{
+      aktuellerZustand = moeglicheZustaende::AUS;
+    //do von gruen
+    LED = 0;
+  }
+  break;
+
+  case moeglicheZustaende::ROT:
+  if (ereignis_isr_gruen_taste==1)
+  {
+      ereignis_isr_gruen_taste=0;
+      //exit
+      LED=0b00;
+      //Uebergang
+      aktuellerZustand = moeglicheZustaende::GRUEN;
+      //transistionsaktivität
+      //entry
+      LED = 0b01001001;
+  }
+  else if (ereignis_isr_aus_taste ==1)
+  {
+    ereignis_isr_aus_taste = 0;
+    //exit
+      LED= 0b00;
+    //Uebergang
+    aktuellerZustand = moeglicheZustaende::AUS;
+    //transitionsaktivitaet
+    //entry
+
+  }
+  else{
+      aktuellerZustand = moeglicheZustaende::ROT;
+    //do von rot
+    LED = 0b10010010;
+  }
+  break;
+
+  case moeglicheZustaende::GRUEN:
+    if (ereignis_isr_rote_taste==1)
+    {
+        ereignis_isr_rote_taste=0;
+        //exit
+        LED=0b00;
+        //Uebergang
+        aktuellerZustand = moeglicheZustaende::ROT;
+        //transistionsaktivität
+        //entry
+        LED = 0b10010010;
+    }
+    else if (ereignis_isr_aus_taste ==1)
+    {
+      ereignis_isr_aus_taste = 0;
+      //exit
+        LED= 0b00;
+      //Uebergang
+      aktuellerZustand = moeglicheZustaende::AUS;
+      //transitionsaktivitaet
+      //entry
+
+    }
+    else{
+        aktuellerZustand = moeglicheZustaende::GRUEN;
+      //do von gruen
+      LED = 0b01001001;
+    }
+  break;
+  }
 }
-
