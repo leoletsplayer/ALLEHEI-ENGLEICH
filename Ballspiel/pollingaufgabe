@@ -1,1 +1,104 @@
+#include <Arduino.h>
+#define LEDS GPIOC->ODR
 
+#define taster_Punkt_Team_A PA1
+#define taster_start PA6
+#define taster_Punkt_Team_B PA10
+
+enum zustand {Initialisierung,SPIEL_ENDE,SPIEL_LAUEFT};
+zustand aktuellerZustand = Initialisierung;
+
+int trefferquote = 3;
+
+void spielstand_anzeigen(){
+  switch (trefferquote)
+  {
+  case 0:
+    LEDS = 0b01110000;
+    break;
+  case 1:
+    LEDS = 0b00110000; 
+    break;
+  case 2:
+    LEDS = 0b00010000; 
+    break;
+  case 3:
+    LEDS = 0b00001000; 
+    break;
+  case 4:
+    LEDS = 0b00000100; 
+    break;
+  case 5:
+    LEDS = 0b00000110; 
+    break;
+  case 6:
+    LEDS = 0b00000111; 
+    break;
+}
+}
+
+void trefferquote_aktualisieren(int aktualisieren){
+  trefferquote = trefferquote + aktualisieren;
+  if (trefferquote > 6) trefferquote = 6;
+  if (trefferquote < 0) trefferquote = 0;
+}
+
+void setup() {
+  pinMode(PC0,OUTPUT);
+  GPIOC->MODER = 0x5555;
+  pinMode(taster_Punkt_Team_A,INPUT_PULLDOWN);
+  pinMode(taster_Punkt_Team_B,INPUT_PULLDOWN);
+  pinMode(taster_start,INPUT_PULLDOWN);
+}
+
+void loop() {
+  
+  switch (aktuellerZustand)
+  {
+  case Initialisierung:
+    aktuellerZustand = SPIEL_ENDE;
+    LEDS=0x00;
+    trefferquote = 3;
+    spielstand_anzeigen();
+    break;
+  case SPIEL_ENDE:
+    spielstand_anzeigen(); 
+    if (digitalRead(taster_start) == 1)
+    {
+      LEDS=0;
+      aktuellerZustand = SPIEL_LAUEFT;
+      trefferquote = 3;
+      spielstand_anzeigen();
+    }
+    break;
+  case SPIEL_LAUEFT:
+    if (trefferquote >= 6)
+    {
+      aktuellerZustand = SPIEL_ENDE;
+      spielstand_anzeigen();
+    }
+    else if (trefferquote <= 0)
+    {
+      aktuellerZustand = SPIEL_ENDE;
+      spielstand_anzeigen();
+    }
+    else if (digitalRead(taster_start) == 1)
+    {
+      trefferquote = 3;
+      spielstand_anzeigen();
+    }
+    else if (digitalRead(taster_Punkt_Team_A) == 1)
+    {
+      trefferquote_aktualisieren(1);
+      spielstand_anzeigen();
+      delay(300);
+    }
+    else if (digitalRead(taster_Punkt_Team_B) == 1)
+    {
+      trefferquote_aktualisieren(-1);
+      spielstand_anzeigen();
+      delay(300);
+    }
+    break;
+  }
+}
